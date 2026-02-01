@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Live Player</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        body { margin: 0; background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        video { width: 100%; max-width: 1200px; height: auto; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        .error { color: red; position: absolute; }
+    </style>
+</head>
+<body>
+
+<video id="video" controls autoplay playsinline></video>
+<div id="errorMsg" class="error"></div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const encryptedVideoId = urlParams.get('v');
+
+    if (Hls.isSupported() && encryptedVideoId) {
+        const video = document.getElementById('video');
+        
+        // Point to our internal Proxy
+        // We pass the encrypted ID to /stream endpoint
+        const streamUrl = `/stream?url=${encryptedVideoId}`;
+
+        const hls = new Hls({
+            debug: false,
+            enableWorker: true,
+            lowLatencyMode: true, // For low latency
+        });
+
+        hls.loadSource(streamUrl);
+        hls.attachMedia(video);
+        
+        hls.on(Hls.Events.MANIFEST_PARSED, function() {
+            video.play().catch(e => console.log("Autoplay blocked, user interaction needed"));
+        });
+
+        hls.on(Hls.Events.ERROR, function (event, data) {
+            if (data.fatal) {
+                console.error("Stream Error:", data);
+                document.getElementById('errorMsg').innerText = "Stream Ended or Error. Check Console.";
+            }
+        });
+    } else {
+        document.getElementById('errorMsg').innerText = "HLS not supported or No Link provided.";
+    }
+</script>
+
+</body>
+</html>
+
