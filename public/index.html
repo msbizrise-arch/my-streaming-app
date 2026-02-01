@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resonance Live Generator</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a1a; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: #2d2d2d; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); width: 100%; max-width: 500px; text-align: center; }
+        h2 { margin-bottom: 20px; color: #4CAF50; }
+        input { width: 90%; padding: 12px; margin-bottom: 15px; border: 1px solid #444; background: #333; color: white; border-radius: 5px; outline: none; }
+        button { background: #4CAF50; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-size: 16px; width: 100%; transition: 0.3s; }
+        button:hover { background: #45a049; }
+        .result { margin-top: 20px; word-break: break-all; display: none; }
+        a { color: #64b5f6; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🔴 Live Stream Setup</h2>
+    <input type="text" id="sourceUrl" placeholder="Paste m3u8 link here...">
+    <button onclick="generateLink()">Generate Live Link</button>
+    
+    <div class="result" id="resultArea">
+        <p>Your Player Link:</p>
+        <a id="finalLink" href="#" target="_blank">Processing...</a>
+    </div>
+</div>
+
+<script>
+    async function generateLink() {
+        const url = document.getElementById('sourceUrl').value;
+        if(!url) return alert("Please paste a URL");
+
+        try {
+            const res = await fetch('/api/generate-link', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ originalUrl: url })
+            });
+            const data = await res.json();
+            
+            const resultArea = document.getElementById('resultArea');
+            const linkTag = document.getElementById('finalLink');
+            
+            // Construct absolute URL
+            const fullLink = window.location.origin + data.playbackUrl;
+            
+            linkTag.href = fullLink;
+            linkTag.innerText = fullLink;
+            resultArea.style.display = 'block';
+        } catch (e) {
+            alert("Error generating link");
+        }
+    }
+</script>
+
+</body>
+</html>
+
